@@ -43,13 +43,6 @@ def index():
     major_select = sum(s[2] for s in subjects if s[7] == "専門選択必修")
     others = sum(s[2] for s in subjects if s[7] == "その他")
 
-    # その他の科目
-    known_fields = {
-        "教養・人文社会", "教養・グローバル", "英語", "初修外国語",
-        "基礎必修", "基礎選択必修", "情報技術者",
-        "専門必修", "専門選択必修"
-    }
-
     humanities_total = liberal + global_edu
     language_total = english + foreign
 
@@ -107,6 +100,13 @@ def add():
 
     return redirect('/')
 
+@app.route('/delete/<int:id>')
+def delete(id):
+    conn = get_db()
+    conn.execute("DELETE FROM subjects WHERE id = ?", (id,))
+    conn.commit()
+    conn.close()
+    return redirect('/')
 
 if __name__ == "__main__":
     app.run(debug=True)
