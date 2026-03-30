@@ -8,18 +8,43 @@
 <h1>GPA管理</h1>
 
 <h2>合計単位: {{ total_credits }}</h2>
-<h2>平均点: {{ avg_score }}</h2>
+<h2>平均点: {{ "%.f"|format(avg_score) }}</h2>
 
 <h2>卒業判定: {{ "OK" if grad_ok else "不足" }}</h2>
 
-<h3>条件チェック</h3>
-<ul>
-{% for key, val in conds.items() %}
-    <li>{{ key }} : {{ "OK" if val else "不足" }}</li>
-{% endfor %}
-</ul>
-
 <hr>
+
+<h2>条件チェック</h2>
+
+<table border="1" style="border-collapse: collapse;">
+<tr>
+  <th>項目</th>
+  <th>取得単位</th>
+  <th>必要単位</th>
+  <th>達成</th>
+</tr>
+
+{% for c in conds %}
+<tr 
+  {% if c.type == "total" %}
+    style="background-color: #d0f0ff;"
+  {% elif c.type == "other" %}
+    style="background-color: #eeeeee;"
+  {% endif %}
+>
+  <td>{{ c.name }}</td>
+  <td>{{ c.current }}</td>
+  <td>{{ c.required }}</td>
+  <td>
+    {% if c.ok %}
+        OK
+    {% else %}
+        不足 (あと {{ c.required - c.current }} 単位)
+    {% endif %}
+  </td>
+</tr>
+{% endfor %}
+</table>
 
 <h2>科目追加</h2>
 <form action="/add" method="post">
@@ -28,7 +53,7 @@
 
 <input type="number" name="credits" placeholder="単位">
 
-<input type="number" step="0.1" name="gpa" placeholder="GPA">
+<input type="numer" step="0.1" name="gpa" placeholder="GPA">
 
 <input type="number" name="score" placeholder="点数">
 
@@ -39,6 +64,7 @@
 <option>選択必修</option>
 <option>選択</option>
 <option>査定外</option>
+<option>その他</option>
 </select>
 
 <select name="field">
@@ -51,6 +77,7 @@
 <option>情報技術者</option>
 <option>専門必修</option>
 <option>専門選択必修</option>
+<option>その他</option>
 </select>
 
 <button type="submit">追加</button>
@@ -59,12 +86,12 @@
 
 <hr>
 
-<h2>一覧</h2>
+<h2>科目一覧</h2>
 
 <a href="/?sort=score">点数順</a>
 <a href="/?sort=credits">単位順</a>
 
-<table border="1">
+<table border="1" style="border-collapse: collapse;">
 <tr>
 <th>名前</th><th>単位</th><th>点数</th>
 </tr>

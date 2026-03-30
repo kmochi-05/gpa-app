@@ -6,7 +6,6 @@ app = Flask(__name__)
 def get_db():
     return sqlite3.connect('database.db')
 
-
 @app.route('/')
 def index():
     conn = get_db()
@@ -32,9 +31,6 @@ def index():
 
     # 卒業要件チェック 
 
-    def sum_by(field_name, value):
-        return sum(s[2] for s in subjects if s[field_name] == value)
-
     # field列（科目分類）
     liberal = sum(s[2] for s in subjects if s[7] == "教養・人文社会")
     global_edu = sum(s[2] for s in subjects if s[7] == "教養・グローバル")
@@ -45,23 +41,39 @@ def index():
     it = sum(s[2] for s in subjects if s[7] == "情報技術者")
     major_must = sum(s[2] for s in subjects if s[7] == "専門必修")
     major_select = sum(s[2] for s in subjects if s[7] == "専門選択必修")
+    others = sum(s[2] for s in subjects if s[7] == "その他")
 
+    # その他の科目
+    known_fields = {
+        "教養・人文社会", "教養・グローバル", "英語", "初修外国語",
+        "基礎必修", "基礎選択必修", "情報技術者",
+        "専門必修", "専門選択必修"
+    }
+
+    humanities_total = liberal + global_edu
     language_total = english + foreign
 
     # 条件チェック
     grad_ok = total_credits >= 124
-    conds = {
-        "教養人文": liberal >= 6,
-        "グローバル": global_edu >= 4,
-        "英語": english >= 4,
-        "初修外国語": foreign >= 2,
-        "言語合計": language_total >= 8,
-        "基礎必修": basic_must >= 36,
-        "基礎選択必修": basic_select >= 2,
-        "IT": it >= 2,
-        "専門必修": major_must >= 32,
-        "専門選択必修": major_select >= 16
-    }
+    conds = [
+        {"name": "教養・人文社会", "current": liberal, "required": 6, "ok": liberal >= 6, "type": "normal"},
+        {"name": "教養・グローバル", "current": global_edu, "required": 4, "ok": global_edu >= 4, "type": "normal"},
+
+        {"name": "教養教育科目合計", "current": humanities_total, "required": 10, "ok": humanities_total >= 10, "type": "total"},
+
+        {"name": "英語", "current": english, "required": 6, "ok": english >= 6, "type": "normal"},
+        {"name": "初修外国語", "current": foreign, "required": 2, "ok": foreign >= 2, "type": "normal"},
+
+        {"name": "言語合計", "current": language_total, "required": 10, "ok": language_total >= 10, "type": "total"},
+
+        {"name": "基礎必修", "current": basic_must, "required": 36, "ok": basic_must >= 36, "type": "normal"},
+        {"name": "基礎選択必修", "current": basic_select, "required": 2, "ok": basic_select >= 2, "type": "normal"},
+        {"name": "情報技術者", "current": it, "required": 2, "ok": it >= 2, "type": "normal"},
+        {"name": "専門必修", "current": major_must, "required": 32, "ok": major_must >= 32, "type": "normal"},
+        {"name": "専門選択必修", "current": major_select, "required": 16, "ok": major_select >= 16, "type": "normal"},
+
+       {"name": "その他", "current": others, "required": 0, "ok": True, "type": "other"}
+    ]
 
     return render_template("index.html",
                            subjects=subjects,
